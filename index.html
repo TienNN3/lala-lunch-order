@@ -102,6 +102,7 @@ pre.msg{background:var(--surface2);border:1px dashed var(--line);border-radius:1
 <div class="toast" id="toast"></div>
 <dialog id="dlg"><img id="dlgImg" alt=""></dialog>
 
+<script src="dish-art.js"></script>
 <script>
 /* ====================== DỮ LIỆU CỐ ĐỊNH (từ file Excel) ====================== */
 const PACKS={
@@ -117,9 +118,12 @@ const PRICE={
 const PRICE_ROWS=Object.entries(PRICE).map(([k,v])=>{const [p,m,d]=k.split('|');return{p,m,d:+d,v}});
 const DAYS=['Chủ nhật','Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy'];
 const SLOT_DEF=[{k:'vc',kind:'Chay',meal:'Trưa'},{k:'vt',kind:'Chay',meal:'Tối'},{k:'mc',kind:'Mặn',meal:'Trưa'},{k:'mt',kind:'Mặn',meal:'Tối'}];
-// Mapping tên món -> ảnh (ảnh CC trong /images, xem credits.json)
-const IMG_RULES=[[/mì quảng/,'mi-quang'],[/bánh canh/,'banh-canh'],[/dương châu/,'com-chien'],[/cá ngừ/,'tuna-salad'],[/bánh hỏi/,'banh-hoi'],[/tempeh/,'tempeh'],[/teriyaki/,'teriyaki'],[/mì ý|spaghetti|pasta/,'pasta'],[/sapa|cá /,'fish'],[/khoai ngọt/,'sweet-potato'],[/heo|thịt|xá xíu/,'pork'],[/nấm/,'mushroom'],[/cơm lứt|cơm/,'brown-rice']];
-function imgFor(name){const n=(name||'').toLowerCase();for(const[r,f]of IMG_RULES)if(r.test(n))return 'images/'+f+'.jpg';return 'images/salad.jpg'}
+// Ảnh món: ưu tiên ảnh thật images/dishes/<slug>.jpg (nếu bạn đã thả vào), nếu chưa có thì dùng ảnh minh hoạ SVG (dish-art.js)
+const slug=n=>(n||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+const realOk=new Set();
+function imgFor(name){const k=slug(name);return realOk.has(k)?'images/dishes/'+k+'.jpg':dishArt(name)}
+function probeImages(){let hit=false,left=0;const all=new Set();Object.values(S.menu).forEach(m=>Object.values(m).forEach(v=>v&&all.add(v)));
+  all.forEach(n=>{const k=slug(n);if(realOk.has(k))return;left++;const i=new Image();i.onload=()=>{realOk.add(k);hit=true;if(--left===0&&hit)render()};i.onerror=()=>{if(--left===0&&hit)render()};i.src='images/dishes/'+k+'.jpg'})}
 
 /* ====================== TRẠNG THÁI & LƯU TRỮ ====================== */
 const KEY='lala-order-v1';
@@ -286,7 +290,7 @@ function vOrder(){
       <div style="grid-column:span 2"><label for="oNote">Ghi chú cho bếp (không hành, thêm ớt…)</label><input id="oNote" placeholder="Tuỳ chọn"></div>
     </div>
     <p class="hint" style="margin:10px 0 0">Nhập tên, rồi bấm <b>Chọn món này</b> trên món muốn ăn bên dưới.</p></div>
-  ${hasMenu?`<div class="dishes">${ds.map(d=>{const c=sum[d.name]||0;return d.name?`<article class="dish"><div class="ph"><img loading="lazy" src="${imgFor(d.name)}" alt="${esc(d.name)}" onerror="this.remove()"><span class="tag ${d.kind==='Chay'?'chay':''}">${d.kind==='Chay'?'🌱':'🍖'} ${d.kind} · ${d.meal}</span>${c?`<span class="cnt">${c}</span>`:''}</div><div class="bd"><div class="nm">${esc(d.name)}</div><div class="meal">${PACKS['Standard Healthy'].kcal} kcal (Standard)</div><button class="btn" data-act="addOrder" data-dish="${esc(d.name)}">Chọn món này</button></div></article>`:''}).join('')}</div>`
+  ${hasMenu?`<div class="dishes">${ds.map(d=>{const c=sum[d.name]||0;return d.name?`<article class="dish"><div class="ph"><img loading="lazy" src="${imgFor(d.name)}" alt="${esc(d.name)}"><span class="tag ${d.kind==='Chay'?'chay':''}">${d.kind==='Chay'?'🌱':'🍖'} ${d.kind} · ${d.meal}</span>${c?`<span class="cnt">${c}</span>`:''}</div><div class="bd"><div class="nm">${esc(d.name)}</div><div class="meal">${PACKS['Standard Healthy'].kcal} kcal (Standard)</div><button class="btn" data-act="addOrder" data-dish="${esc(d.name)}">Chọn món này</button></div></article>`:''}).join('')}</div>`
   :`<div class="card empty-s">Ngày này chưa có menu. Vào <a href="#menu" data-go="menu" style="color:var(--green-d)">Menu tuần</a> để nhập.</div>`}
   <div class="card" style="margin-top:16px"><h2>Ai chọn món gì · ${dow(day)} ${dm(day)} <span class="pill">${od.length} suất</span></h2>
     <div class="tw"><table><thead><tr><th>#</th><th>Họ tên</th><th>Món</th><th>Ghi chú</th><th></th></tr></thead><tbody>
@@ -338,7 +342,7 @@ function vMenu(){
   </tbody></table></div></div>
   <div class="grid g2" style="margin-top:16px">
     <div class="card"><h2>Menu gốc của bếp (09–13/11)</h2><p class="hint">Bấm để phóng to</p><img class="menu-img" src="images/menu-tuan.jpg" alt="Menu tuần 09/11 - 13/11" data-act="zoom" data-src="images/menu-tuan.jpg"></div>
-    <div class="card"><h2>Xem trước ảnh món</h2><p class="hint">Món nào chưa có ảnh riêng sẽ dùng ảnh gần nhất</p><div class="dishes" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr))">${dishesOf(defaultDay()).filter(d=>d.name).map(d=>`<div class="dish"><div class="ph"><img src="${imgFor(d.name)}" alt=""></div><div class="bd" style="padding:8px"><div class="nm" style="font-size:12.5px">${esc(d.name)}</div></div></div>`).join('')||'<div class="empty-s">Chưa có menu</div>'}</div></div>
+    <div class="card"><h2>Xem trước ảnh món</h2><p class="hint">Món nào chưa có ảnh riêng sẽ dùng ảnh gần nhất</p><div class="dishes" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr))">${dishesOf(defaultDay()).filter(d=>d.name).map(d=>`<div class="dish"><div class="ph"><img src="${imgFor(d.name)}" alt="${esc(d.name)}"></div><div class="bd" style="padding:8px"><div class="nm" style="font-size:12.5px">${esc(d.name)}</div></div></div>`).join('')||'<div class="empty-s">Chưa có menu</div>'}</div></div>
   </div>`;
 }
 
@@ -376,7 +380,7 @@ function vData(){
      <li>Lưu ý: test mode ai có URL đều ghi được và hết hạn sau 30 ngày; chỉ nên dùng cho nhóm nhỏ, đừng để dữ liệu nhạy cảm.</li></ol></details></div>
   <div class="card"><h2>Sao lưu / khôi phục</h2><p class="hint">Xuất file JSON để lưu hoặc chuyển sang máy khác.</p>
    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost" data-act="export">⬇️ Xuất JSON</button><label class="btn ghost" style="margin:0;cursor:pointer">⬆️ Nhập JSON<input type="file" accept="application/json" hidden data-chg="import"></label><button class="btn ghost" data-act="theme">🌓 Đổi giao diện sáng/tối</button><button class="btn danger" data-act="reset">Xoá & về dữ liệu mẫu</button></div>
-   <p class="credit" style="margin-top:14px">Ảnh món lấy từ <a href="https://commons.wikimedia.org" target="_blank" rel="noopener">Wikimedia Commons</a> (giấy phép CC / public domain, chi tiết tác giả trong file <code>credits.json</code>). Ảnh là minh hoạ gần đúng, không phải ảnh thật của bếp.</p></div>`;
+   <p class="credit" style="margin-top:14px">Ảnh món là minh hoạ SVG tự vẽ theo nguyên liệu. Muốn dùng ảnh AI/ảnh thật: thả <code>images/dishes/&lt;tên-món&gt;.jpg</code> vào repo (xem <code>PROMPTS.md</code>), web tự ưu tiên ảnh thật.</p></div>`;
 }
 
 /* ====================== HÀNH ĐỘNG ====================== */
@@ -420,7 +424,7 @@ const act={
 };
 $('#dlg').addEventListener('click',()=>$('#dlg').close());
 try{const t=localStorage.getItem('lala-theme');if(t)document.documentElement.dataset.theme=t}catch(e){}
-load();render();cloudPull(true);
+load();render();probeImages();cloudPull(true);
 </script>
 </body>
 </html>
