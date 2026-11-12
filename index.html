@@ -188,8 +188,8 @@ let cloudState='off';
 function setSync(t,s){cloudState=s;const e=document.getElementById('syncState');if(e)e.textContent=t}
 const headers=()=>({'Authorization':'Bearer '+token(),'Content-Type':'application/json'});
 async function cloudPush(){
-  if(!token()||pushRunning||!dirty)return;
-  if(revision===null){await cloudPull(true);return}
+  if(!token()||pushRunning||!dirty)return false;
+  if(revision===null)return await cloudPull(true);
   pushRunning=true;
   try{
     for(let attempt=0;attempt<3&&dirty;attempt++){
@@ -201,8 +201,8 @@ async function cloudPush(){
       revision=d.revision;baseState=sent;dirty=!same(S,sent);
     }
     if(dirty)throw new Error('Dữ liệu vừa thay đổi, đang thử lại');
-    setSync('☁️ Đã đồng bộ','ok');
-  }catch(e){setSync('⚠️ '+e.message+' (đã lưu trên máy)','err');setTimeout(cloudPush,5000)}
+    setSync('☁️ Đã đồng bộ','ok');return true;
+  }catch(e){setSync('⚠️ '+e.message+' (đã lưu trên máy)','err');setTimeout(cloudPush,5000);return false}
   finally{pushRunning=false}
 }
 async function cloudPull(first){
@@ -210,7 +210,7 @@ async function cloudPull(first){
   try{
     const r=await fetch(API,{headers:headers()});const d=await r.json();
     if(!r.ok)throw new Error(d.error||'Không kết nối được Cloudflare');
-    if(!d.state){revision=0;baseState=clone(S);dirty=true;await cloudPush();return true}
+    if(!d.state){revision=0;baseState=clone(S);dirty=true;return await cloudPush()}
     if(revision===null){
       if(S.updatedAt>0)try{localStorage.setItem('lala-before-cloud',JSON.stringify(S))}catch(e){}
       S=d.state;dirty=false;
@@ -219,8 +219,7 @@ async function cloudPull(first){
       dirty=dirty&&!same(S,d.state);
     }
     revision=d.revision;baseState=clone(d.state);
-    localStorage.setItem(KEY,JSON.stringify(S));render();
-    setSync('☁️ Đã đồng bộ','ok');
+    localStorage.setItem(KEY,JSON.stringify(S));setSync('☁️ Đã đồng bộ','ok');render();
     if(dirty){clearTimeout(pushT);pushT=setTimeout(cloudPush,600)}
     return true;
   }catch(e){setSync('⚠️ '+e.message,'err');return false}
