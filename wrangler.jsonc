@@ -1,0 +1,12 @@
+{
+  "$schema": "https://unpkg.com/wrangler/config-schema.json",
+  "name": "lala-lunch-sync",
+  "main": "cloudflare/worker.js",
+  "compatibility_date": "2026-11-12",
+  "workers_dev": true,
+  "d1_databases": [{
+    "binding": "DB",
+    "database_name": "lala-lunch-orders",
+    "database_id": "f5eaaddc-c892-41cf-96f9-7c003f2a3d84"
+  }]
+}
