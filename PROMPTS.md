@@ -35,7 +35,7 @@ Gợi ý thêm cho món **chay**: thêm `strictly vegetarian, no meat, no fish`.
 | Bánh hỏi kèm nấm nướng | Chay | `banh-hoi-kem-nam-nuong.jpg` |
 | Cơm đậu xanh cá sapa nướng sate | Mặn | `com-dau-xanh-ca-sapa-nuong-sate.jpg` |
 | Mì ý gà sốt kem nấm | Mặn | `mi-y-ga-sot-kem-nam.jpg` |
-| Bẩu xì dùn | Chay | `bau-xi-dun.jpg` |
+| Bẩu xì dùn (bún xì dầu/bún nước tương) | Chay | `bau-xi-dun.jpg` |
 | Cơm lứt gỏi nấm | Chay | `com-lut-goi-nam.jpg` |
 | Bún lứt gà nướng Teriyaki | Mặn | `bun-lut-ga-nuong-teriyaki.jpg` |
 | Cơm lứt heo sốt Thái | Mặn | `com-lut-heo-sot-thai.jpg` |
@@ -121,9 +121,9 @@ Overhead photo of mung-bean rice with grilled basa/sapa fish fillet brushed with
 Overhead photo of spaghetti with creamy mushroom sauce and sliced grilled chicken breast, parsley. {STYLE}
 ```
 
-### Bẩu xì dùn  → `bau-xi-dun.jpg`
+### Bẩu xì dùn (bún xì dầu/bún nước tương chay) → `bau-xi-dun.jpg`
 ```
-Overhead photo of vegetarian fresh salad rolls / wrap platter with tofu, carrot, greens, peanuts and dipping sauce (confirm dish with kitchen). {STYLE}
+Overhead photo of vegetarian Vietnamese dry rice vermicelli with light soy sauce dressing, tofu, sauteed mushrooms, cucumber, shredded carrot, lettuce, herbs and a few peanuts. Small noodle portion, plenty of vegetables, no meat, fish, fish sauce, seafood or animal broth. Not salad rolls and not soup. {STYLE}
 ```
 
 ### Cơm lứt gỏi nấm  → `com-lut-goi-nam.jpg`
